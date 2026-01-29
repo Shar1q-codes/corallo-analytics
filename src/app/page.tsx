@@ -41,15 +41,65 @@ export default function HomePage() {
     return () => observer.disconnect();
   }, [revealSelector]);
 
+  useEffect(() => {
+    const nav = document.querySelector('.nav');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const easeInOutCubic = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const smoothScrollTo = (top: number, duration = 700) => {
+      const start = window.scrollY;
+      const distance = top - start;
+      const startTime = performance.now();
+
+      const step = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = easeInOutCubic(progress);
+        window.scrollTo(0, start + distance * eased);
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        }
+      };
+
+      requestAnimationFrame(step);
+    };
+
+    const handleAnchorClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const anchor = target?.closest('a[href^="#"]') as HTMLAnchorElement | null;
+      if (!anchor) return;
+
+      const hash = anchor.getAttribute('href');
+      if (!hash || hash === '#') return;
+
+      const section = document.querySelector(hash);
+      if (!section) return;
+
+      event.preventDefault();
+
+      const navHeight = nav?.getBoundingClientRect().height ?? 0;
+      const top = section.getBoundingClientRect().top + window.scrollY - navHeight - 12;
+
+      window.history.pushState(null, '', hash);
+      if (prefersReducedMotion) {
+        window.scrollTo(0, top);
+        return;
+      }
+
+      smoothScrollTo(top);
+    };
+
+    document.addEventListener('click', handleAnchorClick);
+    return () => document.removeEventListener('click', handleAnchorClick);
+  }, []);
+
   return (
     <div className="site">
       <header className="nav">
         <div className="logo">
-          <span className="logo-mark" aria-hidden="true" />
-          <div>
-            <div className="logo-name">Corallo Analytics</div>
-            <div className="logo-tag">Decision Intelligence Systems</div>
-          </div>
+          <img className="logo-mark" src="/images/logo.png" alt="Corallo Analytics" />
         </div>
         <nav className={`nav-links ${menuOpen ? 'open' : ''}`}>
           {navItems.map((item) => (

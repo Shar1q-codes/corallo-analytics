@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: 'Corallo Analytics - Decision Intelligence Systems',
   description:
     'Corallo Analytics builds analytical systems that extract signals, findings, and decision-ready insights from business data.',
+  icons: {
+    icon: '/images/favicon.png',
+  },
 };
 
 export default function RootLayout({
